@@ -1,0 +1,45 @@
+From 30c48813ed20ffb24192ef79b6f8ea2b3e6a0ba7 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Adri=C3=A1n=20Mart=C3=ADnez?=
+ <adrian.martinez@interactiv4.com>
+Date: Sun, 15 Oct 2017 01:03:56 +0200
+Subject: [PATCH] REST API - Only associate automatically product with all
+ websites when creating product in All Store Views scope
+
+---
+ Model/ProductRepository.php | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/Model/ProductRepository.php b/Model/ProductRepository.php
+index 4a72539e982f..f7545ee1c109 100644
+--- a/Model/ProductRepository.php
++++ b/Model/ProductRepository.php
+@@ -340,16 +340,17 @@ protected function initializeProductData(array $productData, $createNew)
+         foreach ($productData as $key => $value) {
+             $product->setData($key, $value);
+         }
+-        $this->assignProductToWebsites($product);
++        $this->assignProductToWebsites($product, $createNew);
+ 
+         return $product;
+     }
+ 
+     /**
+      * @param \Magento\Catalog\Model\Product $product
++     * @param bool $createNew
+      * @return void
+      */
+-    private function assignProductToWebsites(\Magento\Catalog\Model\Product $product)
++    private function assignProductToWebsites(\Magento\Catalog\Model\Product $product, $createNew)
+     {
+         $websiteIds = $product->getWebsiteIds();
+ 
+@@ -362,7 +363,7 @@ private function assignProductToWebsites(\Magento\Catalog\Model\Product $product
+             );
+         }
+ 
+-        if ($this->storeManager->getStore(true)->getCode() == \Magento\Store\Model\Store::ADMIN_CODE) {
++        if ($createNew && $this->storeManager->getStore(true)->getCode() == \Magento\Store\Model\Store::ADMIN_CODE) {
+             $websiteIds = array_keys($this->storeManager->getWebsites());
+         }
+ 
+
