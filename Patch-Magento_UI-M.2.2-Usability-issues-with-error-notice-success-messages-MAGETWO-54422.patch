@@ -11,7 +11,7 @@ diff --git a/view/frontend/web/js/view/messages.js b/view/frontend/web/js/view/m
 index e6d3bc8..ddb9a99 100644
 --- a/view/frontend/web/js/view/messages.js
 +++ b/view/frontend/web/js/view/messages.js
-@@ -50,7 +50,12 @@ define([
+@@ -59,7 +59,12 @@ define([
              if (isHidden) {
                  setTimeout(function () {
                      $(self.selector).hide('blind', {}, 500)
