@@ -1,0 +1,29 @@
+From b56d22d93e24b45a2ecbcf9f849502411cb99829 Mon Sep 17 00:00:00 2001
+From: Erik Hansen
+Date: Wed, 16 Nov 2016 16:50:31 -0600
+Subject: [PATCH] Show error message for 30 seconds and scroll it into view
+
+---
+ view/frontend/web/js/view/messages.js | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/view/frontend/web/js/view/messages.js b/view/frontend/web/js/view/messages.js
+index e6d3bc8..ddb9a99 100644
+--- a/view/frontend/web/js/view/messages.js
++++ b/view/frontend/web/js/view/messages.js
+@@ -50,7 +50,12 @@ define([
+             if (isHidden) {
+                 setTimeout(function () {
+                     $(self.selector).hide('blind', {}, 500)
+-                }, 5000);
++                }, 30000);
++                try {
++                    $(self.selector)[0].scrollIntoView();
++                } catch (error) {
++                    // Do nothing
++                }
+             }
+         }
+     });
+-- 
+2.8.1
