@@ -1,0 +1,65 @@
+From 45f22aca2e455f2df3fdb0f7ae91563cf388e407 Mon Sep 17 00:00:00 2001
+From: Harold Claus <harold.claus@studioemma.com>
+Date: Thu, 27 Sep 2018 11:42:25 +0200
+Subject: [PATCH 1/2] Fix for removing the dirs while creating a TAR archive
+
+The bug caused issues during the export of analytics data from advanced
+reporting. The scandir has parameter were the sort can be placed, but
+using UNSORTED gives you unwanted lists of files/dirs. Therefor deleting
+the first 2 via array_shift, is not a proper way of dealing with this
+
+Signed-off-by: Harold Claus <harold.claus@studioemma.com>
+---
+ Archive/Tar.php | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
+
+diff --git a/Archive/Tar.php b/Archive/Tar.php
+index 7fe1255e5b85..0a74753077c4 100644
+--- a/Archive/Tar.php
++++ b/Archive/Tar.php
+@@ -259,10 +259,7 @@ protected function _createTar($skipRoot = false, $finalize = false)
+                 );
+             }
+
+-            array_shift($dirFiles);
+-            /* remove  './'*/
+-            array_shift($dirFiles);
+-            /* remove  '../'*/
++            $dirFiles = array_diff($dirFiles, ['..', '.']);
+
+             foreach ($dirFiles as $item) {
+                 $this->_setCurrentFile($file . $item)->_createTar();
+
+From e1d2673086323bc3d633e822afefb5e4d3a22071 Mon Sep 17 00:00:00 2001
+From: Ihor Sviziev <ihor-sviziev@users.noreply.github.com>
+Date: Mon, 1 Oct 2018 05:52:51 +0300
+Subject: [PATCH 2/2] Fix static tests
+
+---
+ Archive/Tar.php | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/Archive/Tar.php b/Archive/Tar.php
+index 0a74753077c4..a858b2411515 100644
+--- a/Archive/Tar.php
++++ b/Archive/Tar.php
+@@ -4,15 +4,15 @@
+  * See COPYING.txt for license details.
+  */
+
++namespace Magento\Framework\Archive;
++
++use Magento\Framework\Archive\Helper\File;
++
+ /**
+  * Class to work with tar archives
+  *
+  * @author      Magento Core Team <core@magentocommerce.com>
+  */
+-namespace Magento\Framework\Archive;
+-
+-use Magento\Framework\Archive\Helper\File;
+-
+ class Tar extends \Magento\Framework\Archive\AbstractArchive implements \Magento\Framework\Archive\ArchiveInterface
+ {
+     /**
