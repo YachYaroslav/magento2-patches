@@ -1,0 +1,436 @@
+From 26dc0c33fe4cd0289615676a7381764aeddcaf2b Mon Sep 17 00:00:00 2001
+From: BlackEagle <ike.devolder@gmail.com>
+Date: Wed, 7 Nov 2018 15:21:44 +0100
+Subject: [PATCH] fix cipherMethod detection for openssl 1.1.1
+
+if openssl is updated to 1.1.1, openssl_get_cipher_methods returns all
+ciphers lowercase. Before you would get mixed uppercase and lowercase
+ciphers. You can still use uppercase or lowercase to use openssl.
+
+To avoid "Not valid cipher method." we must search if the cipherMethod
+exist in uppercase or lowercase before failing.
+
+output of openssl_get_cipher_methods with openssl 1.1.0f:
+
+```
+php -r 'print_r(openssl_get_cipher_methods());'
+Array
+(
+    [0] => AES-128-CBC
+    [1] => AES-128-CBC-HMAC-SHA1
+    [2] => AES-128-CBC-HMAC-SHA256
+    [3] => AES-128-CFB
+    [4] => AES-128-CFB1
+    [5] => AES-128-CFB8
+    [6] => AES-128-CTR
+    [7] => AES-128-ECB
+    [8] => AES-128-OCB
+    [9] => AES-128-OFB
+    [10] => AES-128-XTS
+    [11] => AES-192-CBC
+    [12] => AES-192-CFB
+    [13] => AES-192-CFB1
+    [14] => AES-192-CFB8
+    [15] => AES-192-CTR
+    [16] => AES-192-ECB
+    [17] => AES-192-OCB
+    [18] => AES-192-OFB
+    [19] => AES-256-CBC
+    [20] => AES-256-CBC-HMAC-SHA1
+    [21] => AES-256-CBC-HMAC-SHA256
+    [22] => AES-256-CFB
+    [23] => AES-256-CFB1
+    [24] => AES-256-CFB8
+    [25] => AES-256-CTR
+    [26] => AES-256-ECB
+    [27] => AES-256-OCB
+    [28] => AES-256-OFB
+    [29] => AES-256-XTS
+    [30] => BF-CBC
+    [31] => BF-CFB
+    [32] => BF-ECB
+    [33] => BF-OFB
+    [34] => CAMELLIA-128-CBC
+    [35] => CAMELLIA-128-CFB
+    [36] => CAMELLIA-128-CFB1
+    [37] => CAMELLIA-128-CFB8
+    [38] => CAMELLIA-128-CTR
+    [39] => CAMELLIA-128-ECB
+    [40] => CAMELLIA-128-OFB
+    [41] => CAMELLIA-192-CBC
+    [42] => CAMELLIA-192-CFB
+    [43] => CAMELLIA-192-CFB1
+    [44] => CAMELLIA-192-CFB8
+    [45] => CAMELLIA-192-CTR
+    [46] => CAMELLIA-192-ECB
+    [47] => CAMELLIA-192-OFB
+    [48] => CAMELLIA-256-CBC
+    [49] => CAMELLIA-256-CFB
+    [50] => CAMELLIA-256-CFB1
+    [51] => CAMELLIA-256-CFB8
+    [52] => CAMELLIA-256-CTR
+    [53] => CAMELLIA-256-ECB
+    [54] => CAMELLIA-256-OFB
+    [55] => CAST5-CBC
+    [56] => CAST5-CFB
+    [57] => CAST5-ECB
+    [58] => CAST5-OFB
+    [59] => ChaCha20
+    [60] => ChaCha20-Poly1305
+    [61] => DES-CBC
+    [62] => DES-CFB
+    [63] => DES-CFB1
+    [64] => DES-CFB8
+    [65] => DES-ECB
+    [66] => DES-EDE
+    [67] => DES-EDE-CBC
+    [68] => DES-EDE-CFB
+    [69] => DES-EDE-OFB
+    [70] => DES-EDE3
+    [71] => DES-EDE3-CBC
+    [72] => DES-EDE3-CFB
+    [73] => DES-EDE3-CFB1
+    [74] => DES-EDE3-CFB8
+    [75] => DES-EDE3-OFB
+    [76] => DES-OFB
+    [77] => DESX-CBC
+    [78] => RC2-40-CBC
+    [79] => RC2-64-CBC
+    [80] => RC2-CBC
+    [81] => RC2-CFB
+    [82] => RC2-ECB
+    [83] => RC2-OFB
+    [84] => RC4
+    [85] => RC4-40
+    [86] => RC4-HMAC-MD5
+    [87] => SEED-CBC
+    [88] => SEED-CFB
+    [89] => SEED-ECB
+    [90] => SEED-OFB
+    [91] => aes-128-cbc
+    [92] => aes-128-cbc-hmac-sha1
+    [93] => aes-128-cbc-hmac-sha256
+    [94] => aes-128-ccm
+    [95] => aes-128-cfb
+    [96] => aes-128-cfb1
+    [97] => aes-128-cfb8
+    [98] => aes-128-ctr
+    [99] => aes-128-ecb
+    [100] => aes-128-gcm
+    [101] => aes-128-ocb
+    [102] => aes-128-ofb
+    [103] => aes-128-xts
+    [104] => aes-192-cbc
+    [105] => aes-192-ccm
+    [106] => aes-192-cfb
+    [107] => aes-192-cfb1
+    [108] => aes-192-cfb8
+    [109] => aes-192-ctr
+    [110] => aes-192-ecb
+    [111] => aes-192-gcm
+    [112] => aes-192-ocb
+    [113] => aes-192-ofb
+    [114] => aes-256-cbc
+    [115] => aes-256-cbc-hmac-sha1
+    [116] => aes-256-cbc-hmac-sha256
+    [117] => aes-256-ccm
+    [118] => aes-256-cfb
+    [119] => aes-256-cfb1
+    [120] => aes-256-cfb8
+    [121] => aes-256-ctr
+    [122] => aes-256-ecb
+    [123] => aes-256-gcm
+    [124] => aes-256-ocb
+    [125] => aes-256-ofb
+    [126] => aes-256-xts
+    [127] => bf-cbc
+    [128] => bf-cfb
+    [129] => bf-ecb
+    [130] => bf-ofb
+    [131] => camellia-128-cbc
+    [132] => camellia-128-cfb
+    [133] => camellia-128-cfb1
+    [134] => camellia-128-cfb8
+    [135] => camellia-128-ctr
+    [136] => camellia-128-ecb
+    [137] => camellia-128-ofb
+    [138] => camellia-192-cbc
+    [139] => camellia-192-cfb
+    [140] => camellia-192-cfb1
+    [141] => camellia-192-cfb8
+    [142] => camellia-192-ctr
+    [143] => camellia-192-ecb
+    [144] => camellia-192-ofb
+    [145] => camellia-256-cbc
+    [146] => camellia-256-cfb
+    [147] => camellia-256-cfb1
+    [148] => camellia-256-cfb8
+    [149] => camellia-256-ctr
+    [150] => camellia-256-ecb
+    [151] => camellia-256-ofb
+    [152] => cast5-cbc
+    [153] => cast5-cfb
+    [154] => cast5-ecb
+    [155] => cast5-ofb
+    [156] => chacha20
+    [157] => chacha20-poly1305
+    [158] => des-cbc
+    [159] => des-cfb
+    [160] => des-cfb1
+    [161] => des-cfb8
+    [162] => des-ecb
+    [163] => des-ede
+    [164] => des-ede-cbc
+    [165] => des-ede-cfb
+    [166] => des-ede-ofb
+    [167] => des-ede3
+    [168] => des-ede3-cbc
+    [169] => des-ede3-cfb
+    [170] => des-ede3-cfb1
+    [171] => des-ede3-cfb8
+    [172] => des-ede3-ofb
+    [173] => des-ofb
+    [174] => desx-cbc
+    [175] => id-aes128-CCM
+    [176] => id-aes128-GCM
+    [177] => id-aes128-wrap
+    [178] => id-aes128-wrap-pad
+    [179] => id-aes192-CCM
+    [180] => id-aes192-GCM
+    [181] => id-aes192-wrap
+    [182] => id-aes192-wrap-pad
+    [183] => id-aes256-CCM
+    [184] => id-aes256-GCM
+    [185] => id-aes256-wrap
+    [186] => id-aes256-wrap-pad
+    [187] => id-smime-alg-CMS3DESwrap
+    [188] => rc2-40-cbc
+    [189] => rc2-64-cbc
+    [190] => rc2-cbc
+    [191] => rc2-cfb
+    [192] => rc2-ecb
+    [193] => rc2-ofb
+    [194] => rc4
+    [195] => rc4-40
+    [196] => rc4-hmac-md5
+    [197] => seed-cbc
+    [198] => seed-cfb
+    [199] => seed-ecb
+    [200] => seed-ofb
+)
+```
+
+that output is missing the uppercase versions using openssl 1.1.1:
+
+```
+php -r 'print_r(openssl_get_cipher_methods());'
+Array
+(
+    [0] => aes-128-cbc
+    [1] => aes-128-cbc-hmac-sha1
+    [2] => aes-128-cbc-hmac-sha256
+    [3] => aes-128-ccm
+    [4] => aes-128-cfb
+    [5] => aes-128-cfb1
+    [6] => aes-128-cfb8
+    [7] => aes-128-ctr
+    [8] => aes-128-ecb
+    [9] => aes-128-gcm
+    [10] => aes-128-ocb
+    [11] => aes-128-ofb
+    [12] => aes-128-xts
+    [13] => aes-192-cbc
+    [14] => aes-192-ccm
+    [15] => aes-192-cfb
+    [16] => aes-192-cfb1
+    [17] => aes-192-cfb8
+    [18] => aes-192-ctr
+    [19] => aes-192-ecb
+    [20] => aes-192-gcm
+    [21] => aes-192-ocb
+    [22] => aes-192-ofb
+    [23] => aes-256-cbc
+    [24] => aes-256-cbc-hmac-sha1
+    [25] => aes-256-cbc-hmac-sha256
+    [26] => aes-256-ccm
+    [27] => aes-256-cfb
+    [28] => aes-256-cfb1
+    [29] => aes-256-cfb8
+    [30] => aes-256-ctr
+    [31] => aes-256-ecb
+    [32] => aes-256-gcm
+    [33] => aes-256-ocb
+    [34] => aes-256-ofb
+    [35] => aes-256-xts
+    [36] => aria-128-cbc
+    [37] => aria-128-ccm
+    [38] => aria-128-cfb
+    [39] => aria-128-cfb1
+    [40] => aria-128-cfb8
+    [41] => aria-128-ctr
+    [42] => aria-128-ecb
+    [43] => aria-128-gcm
+    [44] => aria-128-ofb
+    [45] => aria-192-cbc
+    [46] => aria-192-ccm
+    [47] => aria-192-cfb
+    [48] => aria-192-cfb1
+    [49] => aria-192-cfb8
+    [50] => aria-192-ctr
+    [51] => aria-192-ecb
+    [52] => aria-192-gcm
+    [53] => aria-192-ofb
+    [54] => aria-256-cbc
+    [55] => aria-256-ccm
+    [56] => aria-256-cfb
+    [57] => aria-256-cfb1
+    [58] => aria-256-cfb8
+    [59] => aria-256-ctr
+    [60] => aria-256-ecb
+    [61] => aria-256-gcm
+    [62] => aria-256-ofb
+    [63] => bf-cbc
+    [64] => bf-cfb
+    [65] => bf-ecb
+    [66] => bf-ofb
+    [67] => camellia-128-cbc
+    [68] => camellia-128-cfb
+    [69] => camellia-128-cfb1
+    [70] => camellia-128-cfb8
+    [71] => camellia-128-ctr
+    [72] => camellia-128-ecb
+    [73] => camellia-128-ofb
+    [74] => camellia-192-cbc
+    [75] => camellia-192-cfb
+    [76] => camellia-192-cfb1
+    [77] => camellia-192-cfb8
+    [78] => camellia-192-ctr
+    [79] => camellia-192-ecb
+    [80] => camellia-192-ofb
+    [81] => camellia-256-cbc
+    [82] => camellia-256-cfb
+    [83] => camellia-256-cfb1
+    [84] => camellia-256-cfb8
+    [85] => camellia-256-ctr
+    [86] => camellia-256-ecb
+    [87] => camellia-256-ofb
+    [88] => cast5-cbc
+    [89] => cast5-cfb
+    [90] => cast5-ecb
+    [91] => cast5-ofb
+    [92] => chacha20
+    [93] => chacha20-poly1305
+    [94] => des-cbc
+    [95] => des-cfb
+    [96] => des-cfb1
+    [97] => des-cfb8
+    [98] => des-ecb
+    [99] => des-ede
+    [100] => des-ede-cbc
+    [101] => des-ede-cfb
+    [102] => des-ede-ofb
+    [103] => des-ede3
+    [104] => des-ede3-cbc
+    [105] => des-ede3-cfb
+    [106] => des-ede3-cfb1
+    [107] => des-ede3-cfb8
+    [108] => des-ede3-ofb
+    [109] => des-ofb
+    [110] => desx-cbc
+    [111] => id-aes128-CCM
+    [112] => id-aes128-GCM
+    [113] => id-aes128-wrap
+    [114] => id-aes128-wrap-pad
+    [115] => id-aes192-CCM
+    [116] => id-aes192-GCM
+    [117] => id-aes192-wrap
+    [118] => id-aes192-wrap-pad
+    [119] => id-aes256-CCM
+    [120] => id-aes256-GCM
+    [121] => id-aes256-wrap
+    [122] => id-aes256-wrap-pad
+    [123] => id-smime-alg-CMS3DESwrap
+    [124] => rc2-40-cbc
+    [125] => rc2-64-cbc
+    [126] => rc2-cbc
+    [127] => rc2-cfb
+    [128] => rc2-ecb
+    [129] => rc2-ofb
+    [130] => rc4
+    [131] => rc4-40
+    [132] => rc4-hmac-md5
+    [133] => seed-cbc
+    [134] => seed-cfb
+    [135] => seed-ecb
+    [136] => seed-ofb
+    [137] => sm4-cbc
+    [138] => sm4-cfb
+    [139] => sm4-ctr
+    [140] => sm4-ecb
+    [141] => sm4-ofb
+)
+```
+
+So checking if uppercase or lowercase exists in the array fixes the
+issue with openssl 1.1.1 where the uppercase 'AES-256-CBC' is not found.
+You could also fix this by changing the $cipherMethod to 'aes-256-cbc',
+but you never know if openssl will change the output case again.
+
+The issue appears when just running the unittests on php with openssl
+1.1.1, with the previous version of openssl (1.1.0f) the issue is not
+yet present.
+
+Test:
+```
+$ openssl version
+OpenSSL 1.1.1  11 Sep 2018
+$ php -d memory_limit=2048M vendor/bin/phpunit --configuration dev/tests/unit/phpunit.xml.dist
+PHPUnit 6.5.13 by Sebastian Bergmann and contributors.
+
+.....................................................................................    85 / 21418 (  0%)
+.....................................................................................   170 / 21418 (  0%)
+..............EE...F.................................................................   255 / 21418 (  1%)
+.....................................................................................   340 / 21418 (  1%)
+
+...
+
+There were 2 errors:
+
+1) Magento\Analytics\Test\Unit\Model\CryptographerTest::testEncode
+Magento\Framework\Exception\LocalizedException: The data is invalid. Use a valid cipher method and try again.
+
+/phpapp/app/code/Magento/Analytics/Model/Cryptographer.php:70
+/phpapp/app/code/Magento/Analytics/Test/Unit/Model/CryptographerTest.php:134
+
+2) Magento\Analytics\Test\Unit\Model\CryptographerTest::testEncodeUniqueInitializationVector
+Magento\Framework\Exception\LocalizedException: The data is invalid. Use a valid cipher method and try again.
+
+/phpapp/app/code/Magento/Analytics/Model/Cryptographer.php:70
+/phpapp/app/code/Magento/Analytics/Test/Unit/Model/CryptographerTest.php:167
+
+...
+```
+
+Signed-off-by: BlackEagle <ike.devolder@gmail.com>
+---
+ Model/Cryptographer.php | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/Model/Cryptographer.php b/Model/Cryptographer.php
+index 665d564814b1..efddcb501aab 100644
+--- a/Model/Cryptographer.php
++++ b/Model/Cryptographer.php
+@@ -129,7 +129,12 @@ private function getInitializationVector()
+      */
+     private function validateCipherMethod($cipherMethod)
+     {
+-        $methods = openssl_get_cipher_methods();
++        $methods = array_map(
++            'strtolower',
++            openssl_get_cipher_methods()
++        );
++        $cipherMethod = strtolower($cipherMethod);
++
+         return (false !== array_search($cipherMethod, $methods));
+     }
+ }
